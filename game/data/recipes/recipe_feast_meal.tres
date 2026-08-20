@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/craft_recipe.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "recipe_feast_meal"
+display_name = "Masak Feast Meal"
+inputs = Array[Dictionary]([{"item_id": "item_hydro_veggie", "qty": 3}, {"item_id": "item_protein_paste", "qty": 1}])
+required_building_id = "building_hydroponics_bay"
+required_unit_role = -1
+output_id = "item_feast_meal"
+output_qty = 1
+duration_days = 1

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_space_gas"
+display_name = "Space Gas"
+category = 1
+rarity = 1
+description = "Gas kosmik yang bisa diolah jadi Fuel Cell."
+stack_max = 99
+sell_value = 4
+item_type = 0
+food_restore = 0

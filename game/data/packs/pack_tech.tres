@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/pack_definition.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pack_tech"
+display_name = "Tech Pack"
+base_cost = 30
+card_count = 3
+drop_table = Array[Dictionary]([{"card_id": "item_circuit_board", "weight": 40}, {"card_id": "item_metal_ingot", "weight": 40}, {"card_id": "item_fuel_cell", "weight": 30}, {"card_id": "tool_welding_torch", "weight": 25}, {"card_id": "tool_mining_drill", "weight": 25}, {"card_id": "tool_cutting_laser", "weight": 20}, {"card_id": "tool_scanner", "weight": 15}, {"card_id": "item_crystal_ore", "weight": 10}])

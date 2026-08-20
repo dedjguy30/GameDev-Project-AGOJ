@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/package_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pkg_gas_refill"
+display_name = "Pasok Bahan Bakar"
+category = 7
+rarity = 1
+description = "Kirim 3 Fuel Cell ke Gas Nebula."
+stack_max = 0
+sell_value = 0
+destination_sector_id = "sector_gas_nebula"
+required_items = Array[Dictionary]([{"item_id": "item_fuel_cell", "qty": 3}])
+reward_credits = 60
+reward_rep = 15
+deadline_days = 5
+tier = 2

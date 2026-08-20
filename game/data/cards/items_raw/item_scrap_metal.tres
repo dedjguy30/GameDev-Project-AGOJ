@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_scrap_metal"
+display_name = "Scrap Metal"
+category = 1
+rarity = 0
+description = "Besi tua bekas puing kapal. Bahan dasar banyak bangunan."
+stack_max = 99
+sell_value = 1
+item_type = 0
+food_restore = 0

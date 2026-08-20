@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/unit_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "unit_scientist"
+display_name = "Scientist"
+category = 6
+rarity = 1
+description = "Ahli riset. Wajib untuk Science Lab dan efisien di Alien Ruins."
+stack_max = 0
+sell_value = 0
+role = 2
+role_efficiency_map = {"building_science_lab": 2.0, "node_alien_ruins": 1.5, "building_oxygen_generator": 1.5, "building_hydroponics_bay": 1.5}
+needs_food = true
+needs_oxygen = true
+needs_power_to_work = false

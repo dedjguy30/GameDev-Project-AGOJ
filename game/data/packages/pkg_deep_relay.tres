@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/package_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pkg_deep_relay"
+display_name = "Relay Deep Void"
+category = 7
+rarity = 3
+description = "Kirim 4 Circuit Board dan 2 Fuel Cell ke Deep Void."
+stack_max = 0
+sell_value = 0
+destination_sector_id = "sector_deep_void"
+required_items = Array[Dictionary]([{"item_id": "item_circuit_board", "qty": 4}, {"item_id": "item_fuel_cell", "qty": 2}])
+reward_credits = 180
+reward_rep = 40
+deadline_days = 8
+tier = 3

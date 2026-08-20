@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_alien_extract"
+display_name = "Alien Extract"
+category = 2
+rarity = 2
+description = "Ekstrak alien pekat. Bahan Protein Paste dan Med Bay."
+stack_max = 99
+sell_value = 30
+item_type = 1
+food_restore = 0

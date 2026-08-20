@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/currency_loot_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "loot_artifact"
+display_name = "Alien Artifact"
+category = 9
+rarity = 3
+description = "Artefak alien kuno. Bernilai tinggi jika dijual."
+stack_max = 99
+sell_value = 50
+credits_value = 50

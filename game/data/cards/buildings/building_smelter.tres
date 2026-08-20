@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/building_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_smelter"
+display_name = "Smelter"
+category = 5
+rarity = 0
+description = "Melebur Space Ore jadi Metal Ingot. Butuh Unit WORKING + Power."
+stack_max = 0
+sell_value = 0
+build_cost = Array[Dictionary]([{"item_id": "item_scrap_metal", "qty": 5}])
+power_draw = 6
+max_unit_slots = 1
+production = {"input_item_id": "item_space_ore", "input_qty": 2, "output_item_id": "item_metal_ingot", "output_qty": 1, "interval_days": 1}
+passive_effect = ""
+max_connections = 0
+power_generated = 0
