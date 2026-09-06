@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/sector_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sector_alien_ruins"
+display_name = "Alien Ruins Sector"
+base_distance_days = 4
+rep_required = 100
+reward_multiplier = 3.0

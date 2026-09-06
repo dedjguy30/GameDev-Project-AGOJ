@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/sector_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sector_asteroid_belt"
+display_name = "Asteroid Belt"
+base_distance_days = 2
+rep_required = 20
+reward_multiplier = 1.5

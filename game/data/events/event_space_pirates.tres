@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/event_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "event_space_pirates"
+display_name = "Space Pirates"
+category = 8
+rarity = 1
+description = "Bajak laut angkasa mencuri 20% dari salah satu stack item."
+stack_max = 0
+sell_value = 0
+effect_type = 2
+effect_value = 0.2
+duration_days = 0
+choices = []
+spawn_weight = 50

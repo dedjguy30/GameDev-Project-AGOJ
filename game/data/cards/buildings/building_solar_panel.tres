@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/building_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_solar_panel"
+display_name = "Solar Panel"
+category = 5
+rarity = 0
+description = "Generator pasif: +15 Power per hari. Tidak butuh Unit."
+stack_max = 0
+sell_value = 0
+build_cost = Array[Dictionary]([{"item_id": "item_metal_ingot", "qty": 3}])
+power_draw = 0
+max_unit_slots = 0
+production = {}
+passive_effect = "power_generator"
+max_connections = 0
+power_generated = 15

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/event_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "event_meteor_shower"
+display_name = "Meteor Shower"
+category = 8
+rarity = 2
+description = "Hujan meteor membawa harta: 3 Meteorite Fragment muncul di board!"
+stack_max = 0
+sell_value = 0
+effect_type = 4
+effect_value = 3.0
+duration_days = 0
+choices = []
+spawn_weight = 25

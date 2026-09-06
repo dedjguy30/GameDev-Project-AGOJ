@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/sector_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sector_gas_nebula"
+display_name = "Gas Nebula"
+base_distance_days = 3
+rep_required = 50
+reward_multiplier = 2.0

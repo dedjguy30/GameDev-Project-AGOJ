@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_water"
+display_name = "Water"
+category = 2
+rarity = 0
+description = "Air bersih hasil melelehkan es. Bahan dasar makanan dan O2."
+stack_max = 99
+sell_value = 3
+item_type = 1
+food_restore = 0

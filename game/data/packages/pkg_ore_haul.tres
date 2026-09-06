@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/package_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pkg_ore_haul"
+display_name = "Angkut Bijih"
+category = 7
+rarity = 0
+description = "Kirim 6 Space Ore ke Asteroid Belt."
+stack_max = 0
+sell_value = 0
+destination_sector_id = "sector_asteroid_belt"
+required_items = Array[Dictionary]([{"item_id": "item_space_ore", "qty": 6}])
+reward_credits = 40
+reward_rep = 10
+deadline_days = 4
+tier = 1

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/unit_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "unit_pilot"
+display_name = "Pilot"
+category = 6
+rarity = 2
+description = "Navigator ulung. Perjalanan antar sektor 50% lebih cepat. Efisien di Fuel Refinery."
+stack_max = 0
+sell_value = 0
+role = 3
+role_efficiency_map = {"building_fuel_refinery": 1.5, "node_gas_cloud": 1.2}
+needs_food = true
+needs_oxygen = true
+needs_power_to_work = false

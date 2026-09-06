@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/package_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pkg_alien_artifacts"
+display_name = "Kiriman Kristal Alien"
+category = 7
+rarity = 2
+description = "Kirim 2 Crystal Ore ke Alien Ruins Sector."
+stack_max = 0
+sell_value = 0
+destination_sector_id = "sector_alien_ruins"
+required_items = Array[Dictionary]([{"item_id": "item_crystal_ore", "qty": 2}])
+reward_credits = 100
+reward_rep = 25
+deadline_days = 6
+tier = 3

@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/stack.gd" id="1_stack"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stack"]
+bg_color = Color(0.25, 0.28, 0.35, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.7, 0.8, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 4
+
+[node name="CardStack" type="Panel"]
+custom_minimum_size = Vector2(140, 200)
+offset_right = 140.0
+offset_bottom = 200.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_stack")
+script = ExtResource("1_stack")
+
+[node name="CountLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 48
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/node_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "node_alien_ruins"
+display_name = "Alien Ruins"
+category = 0
+rarity = 2
+description = "Reruntuhan peradaban alien. Menghasilkan Alien Flora atau Crystal Ore."
+stack_max = 0
+sell_value = 0
+output_item_id = "item_alien_flora"
+gather_interval_sec = 12.0
+output_qty = 1
+is_limited = true
+durability = 8
+max_unit_slots = 1
+required_tool_id = ""
+secondary_output_item_id = "item_crystal_ore"
+secondary_chance = 0.5

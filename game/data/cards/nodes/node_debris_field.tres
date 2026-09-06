@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/node_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "node_debris_field"
+display_name = "Debris Field"
+category = 0
+rarity = 0
+description = "Lapangan puing kapal lama. Sumber Scrap Metal yang cepat dipanen."
+stack_max = 0
+sell_value = 0
+output_item_id = "item_scrap_metal"
+gather_interval_sec = 5.0
+output_qty = 1
+is_limited = false
+durability = 0
+max_unit_slots = 2
+required_tool_id = ""
+secondary_output_item_id = ""
+secondary_chance = 0.0

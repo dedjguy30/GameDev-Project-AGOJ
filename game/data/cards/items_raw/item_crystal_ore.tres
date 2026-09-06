@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_crystal_ore"
+display_name = "Crystal Ore"
+category = 1
+rarity = 3
+description = "Kristal langka bernilai tinggi. Bahan Circuit Board."
+stack_max = 99
+sell_value = 25
+item_type = 0
+food_restore = 0

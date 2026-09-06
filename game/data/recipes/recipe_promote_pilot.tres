@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/craft_recipe.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "recipe_promote_pilot"
+display_name = "Latih Pilot"
+inputs = Array[Dictionary]([{"item_id": "unit_astronaut", "qty": 1}, {"item_id": "item_fuel_cell", "qty": 2}])
+required_building_id = "building_workshop"
+required_unit_role = -1
+output_id = "unit_pilot"
+output_qty = 1
+duration_days = 0

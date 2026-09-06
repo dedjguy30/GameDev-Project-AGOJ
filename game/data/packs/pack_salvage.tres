@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/pack_definition.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pack_salvage"
+display_name = "Salvage Pack"
+base_cost = 10
+card_count = 3
+drop_table = Array[Dictionary]([{"card_id": "item_space_ore", "weight": 100}, {"card_id": "item_scrap_metal", "weight": 100}, {"card_id": "item_ice_chunk", "weight": 80}, {"card_id": "item_ration_pack", "weight": 60}, {"card_id": "item_water", "weight": 30}, {"card_id": "item_hydro_veggie", "weight": 20}])

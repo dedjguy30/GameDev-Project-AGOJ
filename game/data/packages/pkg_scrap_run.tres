@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/package_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pkg_scrap_run"
+display_name = "Kiriman Scrap"
+category = 7
+rarity = 0
+description = "Kirim 5 Scrap Metal ke Debris Field."
+stack_max = 0
+sell_value = 0
+destination_sector_id = "sector_debris_field"
+required_items = Array[Dictionary]([{"item_id": "item_scrap_metal", "qty": 5}])
+reward_credits = 25
+reward_rep = 5
+deadline_days = 3
+tier = 1
