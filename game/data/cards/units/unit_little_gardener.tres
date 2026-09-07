@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/unit_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "unit_little_gardener"
+display_name = "Little Gardener"
+category = 6
+rarity = 1
+description = "Dari Little Helper + Dirt. Bisa ditempatkan di Green Room menggantikan Astronot."
+stack_max = 0
+sell_value = 0
+role = 4
+role_efficiency_map = {}
+needs_food = false
+needs_oxygen = false
+needs_power_to_work = false

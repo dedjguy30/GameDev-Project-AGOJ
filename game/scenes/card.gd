@@ -48,9 +48,21 @@ var _pre_drag_position := Vector2.ZERO
 @onready var _status_label: Label = %StatusLabel
 @onready var _progress_track: ColorRect = %ProgressTrack
 @onready var _progress_fill: ColorRect = %ProgressFill
+@onready var _frame_rect: TextureRect = %FrameTexture
+
+# Frame kartu per zona (biru = kapal, coklat = angkasa). File PNG opsional:
+# kalau belum ada, kartu tampil placeholder lama. Taruh di:
+#   assets/cards/card_frame_ship.png  (biru, Zona Kapal)
+#   assets/cards/card_frame_space.png (coklat, Zona Angkasa)
+const FRAME_SHIP_PATH := "res://assets/cards/card_frame_ship.png"
+const FRAME_SPACE_PATH := "res://assets/cards/card_frame_space.png"
+static var _frame_ship: Texture2D
+static var _frame_space: Texture2D
+static var _fallback_style: StyleBoxFlat
 
 func _ready() -> void:
 	add_to_group(&"cards")
+	refresh_zone_frame()
 	_update_visuals()
 
 func setup_card(data: CardData, count := 1, built := false) -> void:
@@ -131,6 +143,45 @@ func _update_status_visual() -> void:
 
 func refresh() -> void:
 	_update_visuals()
+
+# Pilih frame biru/coklat sesuai zona posisi kartu saat ini.
+func refresh_zone_frame() -> void:
+	if _frame_rect == null:
+		return
+	var in_space := false
+	var board := get_tree().get_first_node_in_group(&"board") as Board
+	if board != null and is_inside_tree():
+		in_space = board.get_zone(global_position + size * 0.5) == Enums.BoardZone.OPEN_SPACE
+	var tex := _frame_texture(in_space)
+	if tex == null:
+		_frame_rect.visible = false
+		add_theme_stylebox_override("panel", _fallback_panel_style())
+		return
+	remove_theme_stylebox_override("panel")
+	_frame_rect.texture = tex
+	_frame_rect.visible = true
+
+static func _frame_texture(in_space: bool) -> Texture2D:
+	if in_space:
+		if _frame_space == null and ResourceLoader.exists(FRAME_SPACE_PATH):
+			_frame_space = load(FRAME_SPACE_PATH)
+		return _frame_space
+	if _frame_ship == null and ResourceLoader.exists(FRAME_SHIP_PATH):
+		_frame_ship = load(FRAME_SHIP_PATH)
+	return _frame_ship
+
+# Panel kartu transparan (frame PNG yang tampil). Kalau PNG belum ada,
+# pakai gaya placeholder lama agar kartu tetap terbaca.
+static func _fallback_panel_style() -> StyleBoxFlat:
+	if _fallback_style == null:
+		_fallback_style = StyleBoxFlat.new()
+		_fallback_style.bg_color = Color(0.96, 0.96, 0.98)
+		_fallback_style.set_border_width_all(2)
+		_fallback_style.border_color = Color(0.35, 0.38, 0.45)
+		_fallback_style.set_corner_radius_all(8)
+		_fallback_style.shadow_color = Color(0, 0, 0, 0.25)
+		_fallback_style.shadow_size = 4
+	return _fallback_style
 
 # ---------- A3: assign unit ke node ----------
 
@@ -349,6 +400,12 @@ func _try_merge_stack() -> bool:
 			continue
 		if not other.get_global_rect().grow(4.0).has_point(mouse_position):
 			continue
+		# Resep combine lebih prioritas daripada stacking (mis. Water+Water =
+		# Oxygen Tank, Iron+Iron = Component): kalau pasangan ini cocok resep,
+		# biarkan drop lanjut ke Combine Engine, jangan di-merge.
+		var board := get_tree().get_first_node_in_group(&"board") as Board
+		if board != null and RecipeResolver.find_recipe(self, other, board) != null:
+			return false
 		var space: int = other.card_data.stack_max - other.stack_count
 		var moved: int = mini(space, stack_count)
 		other.stack_count += moved

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/item_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "item_dirt"
+display_name = "Dirt"
+category = 2
+rarity = 0
+description = "Tanah dari Water + Space Rocks. Diproses lagi jadi Fertile Dirt."
+stack_max = 99
+sell_value = 1
+item_type = 1
+food_restore = 0
