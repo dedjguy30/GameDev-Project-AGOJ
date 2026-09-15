@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/card_types/building_card.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_water_collector"
+display_name = "Water Collector"
+category = 5
+rarity = 0
+description = "Dari 2x Component + Dirt. Menghasilkan Water otomatis tiap interval."
+stack_max = 0
+sell_value = 0
+build_cost = Array[Dictionary]([])
+power_draw = 0
+max_unit_slots = 0
+production = {"input_item_id": "", "input_qty": 0, "output_item_id": "item_water", "output_qty": 1, "interval_days": 1}
+passive_effect = ""
+max_connections = 0
+power_generated = 0

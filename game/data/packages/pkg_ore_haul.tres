@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1_script")
 id = "pkg_ore_haul"
-display_name = "Angkut Bijih"
+display_name = "Ore Haul"
 category = 7
 rarity = 0
-description = "Kirim 6 Space Ore ke Asteroid Belt."
+description = "Deliver 6 Space Ore to the Asteroid Belt."
 stack_max = 0
 sell_value = 0
 destination_sector_id = "sector_asteroid_belt"

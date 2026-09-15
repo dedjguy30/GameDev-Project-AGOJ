@@ -31,16 +31,58 @@ func pack_cost(pack_id: String) -> int:
 func buy_pack(pack_id: String) -> bool:
 	if GameState.is_game_over:
 		return false
+	var pack := RecipeDB.get_pack(pack_id)
+	if pack == null:
+		return false
+	var board: Board = get_tree().get_first_node_in_group(&"board")
+	# 0. Syarat Reputasi (GDD S4.2: pack tier tinggi butuh Rep).
+	if GameState.reputation < pack.rep_required:
+		if board != null:
+			board._show_toast("Butuh Rep %d (sekarang %d)" % [pack.rep_required, GameState.reputation],
+				board.ship_rect.position + Vector2(200, 300), Color(1, 0.6, 0.55))
+		return false
+	# 1. Cek basic resource dulu (gated, Stacklands-style). Belum ada board
+	# (mis. headless test tanpa scene) → lewati cek resource.
+	if board != null:
+		var missing: Array[String] = []
+		for req in pack.resource_cost:
+			var item_id: String = req.get("item_id", "")
+			var qty: int = int(req.get("qty", 1))
+			var have: int = board.count_item(item_id)
+			if have < qty:
+				var item: CardData = CardDB.get_card(item_id)
+				missing.append("%s x%d" % [item.display_name if item != null else item_id, qty - have])
+		if not missing.is_empty():
+			board._show_toast("Butuh: " + ", ".join(missing),
+				board.ship_rect.position + Vector2(200, 300), Color(1, 0.6, 0.55))
+			return false
 	var cost := pack_cost(pack_id)
 	if not GameState.spend_credits(cost):
-		var board: Board = get_tree().get_first_node_in_group(&"board")
 		if board != null:
 			board._show_toast("Credits tidak cukup (%d cr)" % cost,
 				board.ship_rect.position + Vector2(200, 300), Color(1, 0.6, 0.55))
 		return false
+	# 2. Konsumsi resource, baru random spawn lewat open_pack.
+	if board != null:
+		for req in pack.resource_cost:
+			board.consume_item(req.get("item_id", ""), int(req.get("qty", 1)))
 	GameState.pack_purchase_counts[pack_id] = int(GameState.pack_purchase_counts.get(pack_id, 0)) + 1
 	open_pack(pack_id)
 	return true
+
+# Label tombol beli: "Nama (10 cr)" atau "Nama (10 cr + 2x Scrap)".
+func pack_label(pack_id: String) -> String:
+	var pack := RecipeDB.get_pack(pack_id)
+	if pack == null:
+		return pack_id
+	var parts: Array[String] = ["%d cr" % pack_cost(pack_id)]
+	for req in pack.resource_cost:
+		var item: CardData = CardDB.get_card(req.get("item_id", ""))
+		var item_name: String = item.display_name if item != null else String(req.get("item_id", "?"))
+		parts.append("%dx %s" % [int(req.get("qty", 1)), item_name])
+	if pack.rep_required > 0:
+		parts.append("Rep %d" % pack.rep_required)
+	return "%s (%s)" % [pack.display_name, " + ".join(parts)]
 
 func open_pack(pack_id: String) -> void:
 	var board: Board = get_tree().get_first_node_in_group(&"board")

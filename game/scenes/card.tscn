@@ -1,39 +1,39 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cqsgsp1gmm7yw"]
 
-[ext_resource type="Script" path="res://scenes/card.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://bwork4kwxb058" path="res://scenes/card.gd" id="1_card"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.96, 0.96, 0.98, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.38, 0.45, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.25)
-shadow_size = 4
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_card"]
 
-[node name="Card" type="Panel"]
+[node name="Card" type="Panel" unique_id=1528368112]
 custom_minimum_size = Vector2(90, 128)
 offset_right = 90.0
 offset_bottom = 128.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_card")
 script = ExtResource("1_card")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="FrameTexture" type="TextureRect" parent="." unique_id=2011223344]
 unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 96.0
+offset_bottom = 134.0
 mouse_filter = 2
+expand_mode = 1
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1201801526]
+unique_name_in_owner = true
+layout_mode = 0
 offset_left = 9.0
 offset_top = 9.0
 offset_right = 81.0
 offset_bottom = 47.0
-
-[node name="TitleLabel" type="Label" parent="."]
-unique_name_in_owner = true
 mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="." unique_id=910833147]
+unique_name_in_owner = true
+layout_mode = 0
 offset_left = 6.0
 offset_top = 51.0
 offset_right = 84.0
@@ -45,9 +45,9 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="CountLabel" type="Label" parent="."]
+[node name="CountLabel" type="Label" parent="." unique_id=948123523]
 unique_name_in_owner = true
-mouse_filter = 2
+layout_mode = 0
 offset_left = 63.0
 offset_top = 5.0
 offset_right = 86.0
@@ -57,9 +57,9 @@ theme_override_font_sizes/font_size = 11
 text = "x2"
 horizontal_alignment = 2
 
-[node name="CategoryLabel" type="Label" parent="."]
+[node name="CategoryLabel" type="Label" parent="." unique_id=1756878417]
 unique_name_in_owner = true
-mouse_filter = 2
+layout_mode = 0
 offset_left = 9.0
 offset_top = 80.0
 offset_right = 81.0
@@ -69,34 +69,35 @@ theme_override_font_sizes/font_size = 8
 text = "RAW"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="StatusLabel" type="Label" parent="." unique_id=1605885120]
 unique_name_in_owner = true
-mouse_filter = 2
+layout_mode = 0
 offset_left = 9.0
 offset_top = 96.0
 offset_right = 81.0
 offset_bottom = 113.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 8
-text = ""
 horizontal_alignment = 1
 
-[node name="ProgressTrack" type="ColorRect" parent="."]
+[node name="ProgressTrack" type="ColorRect" parent="." unique_id=734077106]
 unique_name_in_owner = true
 visible = false
-mouse_filter = 2
+layout_mode = 0
 offset_left = 9.0
 offset_top = 114.0
 offset_right = 81.0
 offset_bottom = 119.0
+mouse_filter = 2
 color = Color(0.25, 0.28, 0.33, 1)
 
-[node name="ProgressFill" type="ColorRect" parent="."]
+[node name="ProgressFill" type="ColorRect" parent="." unique_id=1427390148]
 unique_name_in_owner = true
 visible = false
-mouse_filter = 2
+layout_mode = 0
 offset_left = 9.0
 offset_top = 114.0
 offset_right = 9.0
 offset_bottom = 119.0
+mouse_filter = 2
 color = Color(0.4, 0.9, 0.4, 1)

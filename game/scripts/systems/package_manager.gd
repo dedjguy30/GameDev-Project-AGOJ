@@ -87,5 +87,6 @@ func resolve_travel() -> void:
 			unit.set_unit_state(Enums.UnitState.IDLE)
 			unit.visible = true
 			unit.global_position = board.random_free_spot(Enums.BoardZone.SHIP_INTERIOR) - unit.size * 0.5
+			unit.refresh_zone_frame()
 			board._show_toast("Paket terkirim! +%d cr +%d rep" % [credits, rep],
 				unit.global_position, Color(0.55, 1, 0.6))

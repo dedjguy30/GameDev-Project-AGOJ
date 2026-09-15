@@ -12,7 +12,11 @@ func _ready() -> void:
 	_rng.randomize()
 	add_to_group(&"board")
 	_build_zones()
-	_spawn_test_cards()
+	if DisplayServer.get_name() == "headless" and not force_intro:
+		_spawn_test_cards()   # test/debug: layout penuh sekaligus, tanpa intro
+	else:
+		_spawn_world_nodes()  # main: node dunia + starter kit via intro buka-pack
+		_run_intro()
 	_show_data_debug()
 	_spawn_hud()
 
@@ -117,6 +121,7 @@ func _find_tether_station() -> Card:
 # ---------- Routing drop (A5/A6/A7/A8/A10/A13) ----------
 
 func _on_card_dropped(card: Card, position: Vector2) -> void:
+	card.refresh_zone_frame()
 	var target: Card = _card_at(position, card)
 
 	# A7: Building → bayar build_cost (A5)
@@ -172,7 +177,7 @@ func _on_card_dropped(card: Card, position: Vector2) -> void:
 			card.set_tethered(card.tank_days_left <= 0)
 
 	# A13: combine manual
-	var recipe := RecipeResolver.find_recipe(card, target)
+	var recipe := RecipeResolver.find_recipe(card, target, self)
 	if recipe == null:
 		return
 	var blocked: String = RecipeResolver.check_blocked(recipe, self)
@@ -395,13 +400,33 @@ func _card_at(position: Vector2, exclude: Card) -> Card:
 	return best
 
 func has_building(building_id: String) -> bool:
+	return has_card_id(building_id, true)
+
+# require_built = true: kalau kartunya Building, harus sudah is_built dulu
+# (Unit/item lain tidak punya konsep "built" jadi tidak kena filter ini).
+func has_card_id(card_id: String, require_built := false) -> bool:
 	for node in get_tree().get_nodes_in_group(&"cards"):
 		var card := node as Card
 		if card == null or card.is_queued_for_deletion() or card.card_data == null:
 			continue
-		if card.card_data.category == Enums.CardCategory.BUILDING and card.get_card_id() == building_id:
-			return true
+		if card.get_card_id() != card_id:
+			continue
+		if require_built and card.is_building() and not card.is_built:
+			continue
+		return true
 	return false
+
+# Kartu longgar (bukan yg di-exclude) dalam radius tertentu dari sebuah titik.
+# Dipakai RecipeResolver untuk combine 3+ input (pool di sekitar titik drop).
+func get_cards_near(position: Vector2, radius: float) -> Array[Card]:
+	var result: Array[Card] = []
+	for node in get_tree().get_nodes_in_group(&"cards"):
+		var card := node as Card
+		if card == null or card.is_queued_for_deletion() or card.card_data == null:
+			continue
+		if card.global_position.distance_to(position) <= radius:
+			result.append(card)
+	return result
 
 func has_unit_role(role: int) -> bool:
 	for node in get_tree().get_nodes_in_group(&"cards"):
@@ -536,6 +561,7 @@ func spawn_card_at(card_id: String, position: Vector2, count := 1, built := fals
 		return null
 	add_child(card)
 	card.global_position = position - card.size * 0.5
+	card.refresh_zone_frame()
 	return card
 
 func _instantiate_card(card_id: String, count := 1, built := false) -> Card:
@@ -555,6 +581,7 @@ func _spawn_card(card_id: String, position: Vector2, count := 1, built := false)
 		return null
 	add_child(card)
 	card.global_position = position
+	card.refresh_zone_frame()
 	return card
 
 func _on_card_clicked(card: Card) -> void:
@@ -576,7 +603,6 @@ func _spawn_test_cards() -> void:
 
 	# Kolom 2: material combine
 	_spawn_card("item_ice_chunk", Vector2(230, 120))
-	_spawn_card("tool_heat_source", Vector2(230, 290))
 	_spawn_card("item_scrap_metal", Vector2(230, 460), 3)
 	_spawn_card("item_crystal_ore", Vector2(230, 630))
 	_spawn_card("item_circuit_board", Vector2(230, 800), 2)
@@ -593,7 +619,6 @@ func _spawn_test_cards() -> void:
 	_spawn_card("item_metal_ingot", Vector2(570, 290))
 	_spawn_card("item_water", Vector2(570, 460), 2)
 	_spawn_card("item_water", Vector2(570, 630))
-	_spawn_card("tool_processor", Vector2(570, 800))
 
 	# Kolom 5: sistem baru (Phase 5-12)
 	_spawn_card("building_hydroponics_bay", Vector2(740, 120), 1, false)
@@ -604,8 +629,51 @@ func _spawn_test_cards() -> void:
 	_spawn_card("building_trade_post", Vector2(740, 950), 1, true)
 
 	# Zona angkasa: pendukung sistem
-	_spawn_card("item_protein_paste", open_rect.position + Vector2(440, 620), 2)
 	_spawn_card("item_oxygen_canister", open_rect.position + Vector2(440, 800), 2)
+
+	# Baris tambahan (di bawah semua kolom lain, biar tidak nabrak node/kartu
+	# lain): material mentah sesuai GDD/Combining Recipe Space Salvage, biar
+	# semua resep combine baru (Furnace, Green Room, Helper Station, dst) bisa
+	# langsung dites di board tanpa mesti buka Card Pack dulu.
+	_spawn_card("item_water", Vector2(60, 1150), 4)
+	_spawn_card("item_space_rock", Vector2(230, 1150), 5)
+	_spawn_card("item_iron", Vector2(400, 1150), 4)
+	_spawn_card("item_iron_ore", Vector2(570, 1150), 3)
+	_spawn_card("item_energy_cell", Vector2(740, 1150), 2)
+	_spawn_card("item_star_system_map", Vector2(60, 1320), 1)
+	_spawn_card("item_mushroom", Vector2(230, 1320), 2)
+
+# ---------- Game start: node dunia + intro pilih-pack (non-headless) ----------
+
+# true = jalankan intro walau headless (dipakai tests/intro_check).
+var force_intro := false
+
+func _spawn_world_nodes() -> void:
+	_spawn_card("node_asteroid_field", open_rect.position + Vector2(80, 160))
+	_spawn_card("node_debris_field", open_rect.position + Vector2(300, 340))
+	_spawn_card("node_ice_field", open_rect.position + Vector2(80, 460))
+	_spawn_card("node_gas_cloud", open_rect.position + Vector2(300, 120))
+
+func _run_intro() -> void:
+	var intro := IntroOverlay.new()
+	intro.name = "IntroOverlay"
+	intro.z_index = 600
+	add_child(intro)
+	intro.setup(self)
+	intro.finished.connect(_on_intro_finished)
+
+func _on_intro_finished(kit: Array) -> void:
+	var i := 0
+	for entry in kit:
+		var pos := Vector2(80.0 + (i % 3) * 120.0, 150.0 + (i / 3) * 170.0)
+		var card := _spawn_card(String(entry[0]), pos, int(entry[1]))
+		if card != null:
+			card.pivot_offset = card.size * 0.5
+			card.scale = Vector2(0.2, 0.2)
+			var pop := create_tween()
+			pop.tween_property(card, "scale", Vector2.ONE, 0.3) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.08 * i)
+		i += 1
 
 func _show_data_debug() -> void:
 	var label := Label.new()

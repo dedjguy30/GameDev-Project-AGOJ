@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/craft_recipe.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "recipe_furnace_smelt_ore"
+display_name = "Furnace: Lebur Iron Ore"
+inputs = Array[Dictionary]([{"item_id": "item_iron_ore", "qty": 1}])
+required_building_id = ""
+required_unit_role = -1
+output_id = "item_iron"
+output_qty = 1
+duration_days = 0
+structure_target_ids = Array[String](["building_furnace", "unit_little_furnace"])

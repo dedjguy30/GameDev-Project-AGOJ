@@ -7,6 +7,9 @@ var _event_popup: Panel
 var _event_card_ref: Card
 var _game_over_panel: Panel
 var _choice_buttons: Array[Button] = []
+var _recipe_panel: Panel
+var _pack_info_label: Label
+var _hovered_pack_id := ""
 
 func setup(board: Board) -> void:
 	_board = board
@@ -25,7 +28,7 @@ func setup(board: Board) -> void:
 
 func _build_stats_bar() -> void:
 	_stats_label = Label.new()
-	_stats_label.position = Vector2(500, 8)
+	_stats_label.position = Vector2(16, 34)
 	_stats_label.add_theme_font_size_override("font_size", 18)
 	_stats_label.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
 	_stats_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -37,62 +40,161 @@ func _refresh_stats() -> void:
 		GameState.power, int(GameState.power_cap), GameState.credits,
 		GameState.reputation, GameState.score]
 
+func _shop_pack_ids() -> Array[String]:
+	var pack_ids: Array[String] = []
+	for pack in RecipeDB.all_packs():
+		if pack.shop_visible:
+			pack_ids.append(pack.id)
+	pack_ids.sort()
+	return pack_ids
+
 func _build_buttons() -> void:
+	var view := _board.get_viewport_rect().size
 	var end_day := Button.new()
+	end_day.name = "EndDayButton"
 	end_day.text = "End Day"
-	end_day.position = Vector2(1100, 8)
-	end_day.size = Vector2(140, 42)
+	end_day.size = Vector2(140, 48)
+	end_day.position = Vector2(view.x - 156.0, view.y - 60.0)
 	end_day.pressed.connect(DayCycle.end_day)
 	add_child(end_day)
 
-	var pack_ids: Array[String] = []
-	for pack in RecipeDB.all_packs():
-		pack_ids.append(pack.id)
-	var x := 1100.0
-	for pack_id in pack_ids:
+	# Tombol pack dijejer horizontal di kiri tombol End Day (kanan-bawah).
+	# Teks tombol cuma nama pack; rincian biaya tampil saat hover (tooltip).
+	var x := view.x - 156.0 - 10.0 - 300.0
+	for pack_id in _shop_pack_ids():
 		var pack := RecipeDB.get_pack(pack_id)
 		var btn := Button.new()
-		btn.text = "%s (%d cr)" % [pack.display_name, Economy.pack_cost(pack_id)]
-		btn.position = Vector2(x, 60)
-		btn.size = Vector2(200, 42)
+		btn.name = "PackBtn_" + pack_id
+		btn.text = pack.display_name
+		btn.tooltip_text = Economy.pack_label(pack_id)
+		btn.position = Vector2(x, view.y - 60.0)
+		btn.size = Vector2(300, 48)
 		btn.pressed.connect(_buy_pack.bind(pack_id))
+		btn.mouse_entered.connect(_show_pack_info.bind(pack_id))
+		btn.mouse_exited.connect(_hide_pack_info)
 		add_child(btn)
-		x += 210.0
-	_update_pack_button_labels(pack_ids)
+		x -= 310.0
 
-func _update_pack_button_labels(pack_ids: Array[String]) -> void:
-	for child in get_children():
-		var btn := child as Button
-		if btn == null or not btn.pressed.is_connected(_buy_pack):
-			continue
-		# simpel: cari pack id dari posisi — label di-refresh penuh di sini
-		var pack := RecipeDB.get_pack(pack_ids[0])
-		if pack != null:
-			btn.text = "%s (%d cr)" % [pack.display_name, Economy.pack_cost(pack_ids[0])]
+	_pack_info_label = Label.new()
+	_pack_info_label.position = Vector2(view.x - 796.0, view.y - 100.0)
+	_pack_info_label.size = Vector2(780, 30)
+	_pack_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_pack_info_label.add_theme_font_size_override("font_size", 16)
+	_pack_info_label.add_theme_color_override("font_color", Color(0.7, 0.95, 1))
+	_pack_info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_pack_info_label)
+
+	var recipe_button := Button.new()
+	recipe_button.name = "RecipeButton"
+	recipe_button.text = "Resep"
+	recipe_button.position = Vector2(8, view.y - 60.0)
+	recipe_button.size = Vector2(140, 48)
+	recipe_button.pressed.connect(_toggle_recipe_book)
+	add_child(recipe_button)
+	_build_recipe_book()
+
+func _refresh_pack_buttons() -> void:
+	for pack_id in _shop_pack_ids():
+		var btn := get_node_or_null("PackBtn_" + pack_id) as Button
+		if btn != null:
+			btn.tooltip_text = Economy.pack_label(pack_id)
+	if _hovered_pack_id != "" and _pack_info_label != null:
+		_pack_info_label.text = Economy.pack_label(_hovered_pack_id)
 
 func _buy_pack(pack_id: String) -> void:
 	if Economy.buy_pack(pack_id):
 		_refresh_pack_buttons()
 
-func _refresh_pack_buttons() -> void:
-	var pack_ids: Array[String] = []
-	for pack in RecipeDB.all_packs():
-		pack_ids.append(pack.id)
-	for child in get_children():
-		var btn := child as Button
-		if btn == null or not btn.pressed.is_connected(_buy_pack):
-			continue
-		btn.text = "Pack (%d cr)" % 0
-	var x := 1100.0
-	for pack_id in pack_ids:
-		var pack := RecipeDB.get_pack(pack_id)
-		for child in get_children():
-			var btn := child as Button
-			if btn == null:
-				continue
-			if btn.position.x == x and btn.position.y == 60.0:
-				btn.text = "%s (%d cr)" % [pack.display_name, Economy.pack_cost(pack_id)]
-		x += 210.0
+# Info biaya pack: tampil di label di atas tombol saat cursor hover.
+func _show_pack_info(pack_id: String) -> void:
+	_hovered_pack_id = pack_id
+	if _pack_info_label != null:
+		_pack_info_label.text = Economy.pack_label(pack_id)
+
+func _hide_pack_info() -> void:
+	_hovered_pack_id = ""
+	if _pack_info_label != null:
+		_pack_info_label.text = ""
+
+# ---------- Buku resep combo (tombol "Resep" kiri-bawah) ----------
+
+func _toggle_recipe_book() -> void:
+	if _recipe_panel != null:
+		_recipe_panel.visible = not _recipe_panel.visible
+
+func _build_recipe_book() -> void:
+	var view := _board.get_viewport_rect().size
+	_recipe_panel = UIFactory.panel(Vector2(minf(480.0, view.x * 0.4), view.y - 170.0),
+		Color(0.09, 0.1, 0.15))
+	_recipe_panel.name = "RecipeBook"
+	_recipe_panel.position = Vector2(8, 90)
+	_recipe_panel.visible = false
+	add_child(_recipe_panel)
+
+	var title := UIFactory.label("BUKU RESEP COMBO", 20, Color(0.9, 0.95, 1), HORIZONTAL_ALIGNMENT_LEFT)
+	title.position = Vector2(16, 10)
+	title.size = Vector2(300, 30)
+	_recipe_panel.add_child(title)
+
+	var close_button := UIFactory.button("Tutup", Vector2(100, 34))
+	close_button.position = Vector2(_recipe_panel.size.x - 116.0, 8)
+	close_button.pressed.connect(_toggle_recipe_book)
+	_recipe_panel.add_child(close_button)
+
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(8, 52)
+	scroll.size = Vector2(_recipe_panel.size.x - 16.0, _recipe_panel.size.y - 60.0)
+	_recipe_panel.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 10)
+	scroll.add_child(list)
+
+	for line in _recipe_lines():
+		var entry := UIFactory.label(line, 15, Color(0.9, 0.95, 1), HORIZONTAL_ALIGNMENT_LEFT)
+		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		list.add_child(entry)
+
+func _card_short(card_id: String) -> String:
+	var data: CardData = CardDB.get_card(card_id)
+	return data.display_name if data != null else card_id
+
+func _recipe_lines() -> Array[String]:
+	var lines: Array[String] = []
+	var recipes: Array = RecipeDB.all_recipes()
+	recipes.sort_custom(func(a, b): return a.id < b.id)
+	for recipe in recipes:
+		var ins: Array[String] = []
+		for req in recipe.inputs:
+			ins.append("%s x%d" % [_card_short(String(req.get("item_id", "?"))), int(req.get("qty", 1))])
+		var line := " + ".join(ins) + "  =  " + _card_short(recipe.output_id)
+		if int(recipe.output_qty) > 1:
+			line += " x%d" % int(recipe.output_qty)
+		var gates: Array[String] = []
+		if String(recipe.required_building_id) != "":
+			gates.append("Gedung: " + _card_short(String(recipe.required_building_id)))
+		if not recipe.required_any_structure_ids.is_empty():
+			var names: Array[String] = []
+			for id in recipe.required_any_structure_ids:
+				names.append(_card_short(String(id)))
+			gates.append("Perlu: " + " / ".join(names))
+		if not recipe.required_any_worker_ids.is_empty():
+			var names: Array[String] = []
+			for id in recipe.required_any_worker_ids:
+				names.append(_card_short(String(id)))
+			gates.append("Pekerja: " + " / ".join(names))
+		if not recipe.structure_target_ids.is_empty():
+			var names: Array[String] = []
+			for id in recipe.structure_target_ids:
+				names.append(_card_short(String(id)))
+			gates.append("Ke: " + " / ".join(names))
+		if int(recipe.duration_days) > 0:
+			gates.append("Produksi %d hari" % int(recipe.duration_days))
+		if not gates.is_empty():
+			line += "\n    " + ", ".join(gates)
+		lines.append(line)
+	return lines
 
 # ---------- Event choice popup (A9 PLAYER_CHOICE) ----------
 

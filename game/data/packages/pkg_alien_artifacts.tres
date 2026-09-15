@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1_script")
 id = "pkg_alien_artifacts"
-display_name = "Kiriman Kristal Alien"
+display_name = "Alien Crystal Delivery"
 category = 7
 rarity = 2
-description = "Kirim 2 Crystal Ore ke Alien Ruins Sector."
+description = "Deliver 2 Crystal Ore to the Alien Ruins Sector."
 stack_max = 0
 sell_value = 0
 destination_sector_id = "sector_alien_ruins"

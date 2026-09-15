@@ -459,22 +459,30 @@ Semua resep didefinisikan sebagai data (`.tres`), bukan hardcode, supaya gampang
 @export var duration_days: int = 0   # 0 = instan (manual combine), >0 = perlu N hari (produksi Building)
 ```
 
-### Tabel Ringkas Semua Resep
+### Tabel Ringkas Semua Resep (sumber: PDF Combining Recipe — menggantikan tabel lama)
 
 | Input | Building/Unit Prasyarat | Output |
 |---|---|---|
-| Ice Chunk + Heat Source(Tool) | – | Water |
-| Water + Power | Oxygen Generator, Unit WORKING | Oxygen Canister |
-| Space Ore ×2 | Smelter, Unit WORKING | Metal Ingot |
-| Space Gas ×2 | Fuel Refinery, Unit WORKING | Fuel Cell |
-| Scrap Metal ×2 + Crystal Ore ×1 | – (manual) | Circuit Board |
-| Alien Flora ×1 | Science Lab, Scientist WORKING | Alien Extract |
-| Scrap Metal ×3 | Engineer WORKING saat combine | Mining Drill |
-| Scrap Metal ×2 + Fuel Cell ×1 | – | Welding Torch |
-| Metal Ingot ×2 + Circuit Board ×1 | – | Cutting Laser |
-| Circuit Board ×3 + Metal Ingot ×2 | – | Robot Drone (Unit baru) |
-| Hydro Veggie ×3 + Protein Paste ×1 | Building "Kitchen" (sub-fungsi Hydroponics Bay), Unit WORKING | Feast Meal |
-| Alien Extract ×1 + Processor(Tool) | – | Protein Paste |
+| Water + Water | – | Oxygen Tank |
+| Water + Space Rock | – | Dirt |
+| Iron + Component | – | Excavation Tools |
+| Iron + Iron | – | Component |
+| Water + Dirt | – | Fertile Dirt |
+| Space Rock ×2 + Iron | – | Furnace |
+| Fertile Dirt ×2 + Component | – | Green Room |
+| Component ×2 + Dirt | – | Water Collector |
+| Component ×2 + Star System Map | – | Space Navigator |
+| Energy Cell + Component ×3 | – | Helper Station |
+| Mushroom | Structure Furnace / Little Furnace | Food |
+| Iron Ore | Structure Furnace / Little Furnace | Iron |
+| Food | Structure Furnace / Little Furnace | Power |
+| Water + Food | Green Room + Astronaut / Little Gardener | Mushroom ×2 |
+| Water + Mushroom | Green Room + Astronaut / Little Gardener | Mushroom ×2 |
+| Energy Cell + Space Rock + Iron | Helper Station + Astronaut (combine saja) | Little Helper |
+| Little Helper + Excavation Tools | – | Little Excavator |
+| Little Helper + Dirt | – | Little Gardener |
+| Little Helper + Iron + Space Rock ×2 | – | Little Furnace |
+| Water + Component ×2 | – | Portable O2 Tank (EVA darurat, tahan 3 hari) |
 
 Resolusi combine (manual, instan):
 ```
@@ -569,7 +577,7 @@ Score = (total_days_survived × 100) + (total_credits_earned × 1) + (total_pack
 
 # BAGIAN B — STRUKTUR FOLDER
 
-## Target (sesuai GDD §17)
+## Target (sesuai GDD S17)
 
 ```
 res://
@@ -667,10 +675,27 @@ Catatan: prototype Phase 0 akan di-refactor menjadi sistem CardData (Resource) +
   - Test baru `tests/gameplay_check.tscn|gd`: 8 alur (repair kit, build cost, jual, produksi End Day, package, tether, event choice, game over) → `GAMEPLAY CHECK: OK`. Semua validasi: `DATA CHECK: OK`, `COMBINE CHECK: OK`, `GATHER CHECK: OK`, `GAMEPLAY CHECK: OK`, run headless 240 frame bersih.
 - **Playtest fix (user):** kartu dikecilkan 25% (120×170 → 90×128, font & posisi elemen di-scale); offset assign unit & ring spawn kartu ikut disesuaikan. **Produksi building diubah dari End Day → real-time** (Stacklands-style): `board._tick_production()` — progress bar kini tampil di kartu unit saat WORKING di building produksi (interval = `interval_days` × 10 detik, pause jika bahan kurang / tanpa worker / mati listrik), bahan dikonsumsi + output spawn saat bar penuh. Step produksi dihapus dari `DayCycle.end_day`. Test gameplay alur D disesuaikan; semua validasi tetap OK.
 - *(isi log di sini tiap ada perubahan)*
+- **Pack gated (user):** buka pack tidak lagi cuma Credits → butuh basic resource dulu + random tetap (Stacklands-style). `PackDefinition.resource_cost: Array[Dictionary]`, `Economy.buy_pack()` cek `board.count_item` → toast "Butuh: ..." jika kurang → `spend_credits` → `consume_item` → `open_pack()` (weighted random tidak berubah, reward event `grant_pack` tetap gratis). Isi awal: Salvage = Scrap ×2, Tech = Scrap ×2 + Space Ore ×2, Recruit = Water ×2 + Scrap ×2, Alien = Alien Flora ×1, Mystery = gratis. Label tombol HUD via `Economy.pack_label()` ("10 cr + 2x Scrap Metal"). Validasi `data_check.gd` cek `resource_cost` ref & qty.
+- **Resep diganti PDF Combining Recipe (user):** 37 → 19 resep. Dihapus 18 file: `alien_extract`, `circuit_board`, `cutting_laser`, `feast_meal`, `fuel_cell`, `metal_ingot`, `mining_drill`, `oxygen_canister`, `portable_o2_tank`, `promote_engineer|pilot|scientist`, `protein_paste`, `repair_kit`, `robot_drone`, `water_melt`, `welding_torch`, `build_helper_charger_station` (di PDF masih ragu-ragu). Tabel A13 diganti daftar PDF. Catatan: kartu-kartu lama (Circuit Board, Scrap, dsb) tetap ada sebagai data (dipakai pack drop & test board), hanya resepnya yang dihapus. Sistem promosi role A4a ikut nonaktif (resepnya dihapus).
+- **Fix prioritas combine (akibat PDF):** resep sesama-item (Water+Water, Iron+Iron) tidak bisa ke-trigger via drag karena `_try_merge_stack()` di `card.gd` selalu merge duluan — sekarang cek `RecipeResolver.find_recipe()` dulu, kalau cocok diteruskan ke Combine Engine. `combine_check.gd` ditulis ulang ke resep PDF (find 12 kasus + flow A/B/C: oxygen tank, excavation tools, dirt chain). Semua validasi OK (data/combine/gather/gameplay + main 240 frame).
+- **Bersih-bersih kartu (user, 86→74):** dihapus 12 kartu orphan tak bersistem: `building_cargo_bay`, `building_helper_charger_station`, `item_asteroid|ice_block|iron_deposit|space_debris` (calon breakable PDF, belum ada sistemnya — bikin lagi saat sistemnya ada), `item_protein_paste|ration_pack`, `tool_heat_source|processor`, `unit_pilot|robot_drone`. Drop pack di-remap ke item era-PDF: Salvage = water/iron/rock/food/mushroom/ice; Tech = iron/ore/rock/energy/component/excavation/star map; Mystery = campur PDF + tool/unit fungsional; Alien & Recruit tetap. Test board: 3 spawn kartu terhapus dibuang. Yang SENGAJA dipertahankan walau non-PDF (load-bearing): scrap/ore/gas/ice/circuit/fuel/ingot/crystal/alien (node output, build cost, package, pack cost), cutting laser (syarat gas node), mining drill (efek di `_unit_efficiency`), repair kit (consumable + gameplay), portable tank, engineer/scientist (test + mystery), paket & event lama (konten valid). Follow-up: loop survival lama (smelter/refinery/oxygen-gen) masih jalan pasif tapi outputnya makin sedikit dipakai — diputuskan di balancing/GDD lanjutan.
+- **Intro buka-pack (user):** game baru (non-headless) tidak lagi langsung tumpuk kartu debug — muncul overlay "HARI 0 — PERBEKALAN AWAL" (z 600, blokir input): panel Paket Perbekalan → tombol "Buka Pack" (punch tween) → 6 mini kartu starter reveal staggered pop → tombol "Ke Board" → starter kit spawn di Zona Kapal dengan pop + overlay fade. Starter: Astronaut ×1, Water ×2, Space Rock ×2, Iron ×2, Food ×1, Mushroom ×1; node dunia (asteroid/debris/ice/gas) sudah ter-spawn di belakang overlay. Headless/test tetap pakai `_spawn_test_cards()` instan; `Board.force_intro` + `tests/intro_check.tscn|gd` memverifikasi alur intro → `INTRO CHECK: OK`.
+- **Paket O2 A+B+C (user, portable jangan terlalu susah/mudah):** temuan audit — resep portable ikut terhapus kemarin (sumber tinggal Mystery Pack) + Mystery `base_cost = 0` masih ada tombol belinya (farm gratis) + O2 Station butuh Circuit ×2 yang sudah tak obtainable (station tak bisa dibangun, tether mati). Perbaikan: (A) resep baru `recipe_portable_o2_tank` = Water ×1 + Component ×2 (4 iron + 1 water + 2 langkah combine, tanpa building — awalnya Iron ×2 + Component ×1 tapi itu subset-ambiguous dengan Excavation Tools dan engine ambil match pertama, jadi diganti yang disjoint; tematik: O2 dari water); (B) build cost O2 Station `circuit ×2 → component ×2` (ingot ×4 via smelter tetap) — station = investasi permanen 2 slot, portable = darurat 3 hari; (C) `PackDefinition.shop_visible` + Mystery `shop_visible = false` (reward-only sesuai GDD A12, tetap didapat via event `grant_pack`) — HUD hanya bikin tombol pack yang `shop_visible`. Test: kasus portable masuk combine_check; semua validasi OK (74 kartu | 20 resep).
+- **Layout HUD + Buku Resep (user, dari screenshot):** End Day pindah kanan-bawah; tombol pack dijejer horizontal di kirinya (urutan abjad, nama node `PackBtn_<id>`); tombol "Resep" di kiri-bawah membuka panel Buku Resep (scroll, 20 resep `input → output + syarat`, toggle buka/tutup). Stat bar digeser ke (16,34) agar tidak tabrakan label zona. Sekalian fix bug label pack (semua tombol keliru tampil pack pertama karena refresh berbasis posisi — sekarang berbasis nama node). Verifikasi via smoke test sementara (20 baris, toggle, tombol lengkap, mystery tanpa tombol → OK, file dihapus lagi).
+- **Alien Pack disederhanakan (user):** rantai alien sebenarnya konsisten (event Trade → pack gratis → flora/crystal → Science Lab → extract → Med Bay) — yang membingungkan hanya pack-nya dijual di toko seharga Flora ×1 padahal isinya Flora juga (sirkular). Jadi `pack_alien.shop_visible = false` (reward-only, dapat via `grant_pack`), biaya flora dihapus.
+- **Sync GDD Finpro (user):** (a) restore `unit_pilot` (role 3, bonus travel −1 hari) + `unit_robot_drone` (role 4, tanpa Food/O2, butuh Power, efisien mining 1.5) — GDD S2.3; (b) Recruit Pack jadi mix Astronaut 70 / Engineer 12 / Scientist 10 / Pilot 8 + Mystery ketambahan Drone (kru via Recruit Pack, GDD S3.1); (c) `PackDefinition.rep_required`, Tech = 20 (sejajar unlock Asteroid Belt) — Rep membuka pack tier tinggi, GDD S4.2; `buy_pack` tolak + toast kalau Rep kurang, label tampil "Rep 20"; (d) starter kit +Scrap ×2 agar hari 0 langsung bisa buka Salvage Pack (GDD S3.3), test intro diupdate; (e) Main Menu baru (`scenes/menu.tscn` + `scripts/ui/menu.gd`, Mulai/Keluar, main scene project dialihkan ke menu, board tetap `main.tscn` agar test tidak berubah) — GDD S4.3, Continue/Options absen sesuai GDD (butuh save/load, out of scope); (f) SFX prosedural DICABUT lagi atas permintaan user ("nanti aja") — file + autoload + 8 hook dihapus, slotnya didokumentasikan di sini buat nanti. Semua validasi OK (76 kartu | 20 resep).
+- **Intro pilih 1 dari 3 pack + rapikan kode UI (user):** intro tidak lagi 1 paket fix — `scripts/ui/intro.gd` (`IntroOverlay`, data-driven `INTRO_PACKS`): Survivor (food/water), Miner (iron/scrap, langsung bisa beli Salvage), Technician (energy/component). Tiap pack tampil isi + tombol Choose (satu pilihan, terkunci), lalu reveal minis + Start; board spawn kit pilihan via signal `finished(kit)` (slot grid otomatis). Nambah pack ke-4 = tambah 1 dictionary, tanpa logika baru. `scripts/ui/ui_factory.gd` (panel/label/button satu baris) dipakai intro + menu + buku resep. Hasil: board.gd 721→613 baris; total script 2040→2051 (file baru intro+factory), duplikasi pembuatan UI hilang. Catatan teknis: file `class_name` baru wajib scan editor sekali (`.godot/global_script_class_cache.cfg`, gitignored) agar test headless kenal — perintahnya `--headless --editor --quit`. `intro_check` ditulis ulang ke alur pilih (3 tombol, kunci anti-ganti, assert isi kit pack 0). Semua validasi OK.
+- **Nama package English (user):** 5 package quest (`Scrap Run`, `Ore Haul`, `Fuel Resupply`, `Deep Void Relay`, `Alien Crystal Delivery`, +deskripsi) dan 3 pack intro (`Survivor/Miner/Technician Pack`, tombol `Choose`/`Start`, test diupdate). Judul/sub intro ditulis user sendiri.
+- **Intro tetap gelap + centering presisi (user):** dim 0.78 dipertahankan; judul/sub jadi full-width (center beneran di semua resolusi); baris pack & minis dihitung dari lebar konten aktual (panel+gap), bukan asumsi step — sebelumnya meleset ~10px ke kiri. Perbaikan lanjutan: overlay pakai ukuran eksplisit (`size = view`, bukan anchor) agar fill gelap selalu tampil; layout kolom jadi vertikal-center penuh (judul-sub-pack-mini-tombol satu kolom simetris).
+- **Frame kartu per zona (user, asset baru):** `card.tscn` + layer `FrameTexture` (belakang, fallback placeholder kalau PNG belum ada); `card.gd:refresh_zone_frame()` pilih biru/coklat dari zona posisi kartu — dipanggil saat spawn, drop, dan unit pulang travel. File yang perlu disimpan user: `assets/cards/card_frame_ship.png` (biru) + `assets/cards/card_frame_space.png` (coklat); buka project di editor sekali agar ke-import. Semua validasi OK tanpa PNG (jalur fallback).
+- **Tombol pack: nama saja + info hover (user):** label panjang (`Tech Pack (30 cr + ...)`) bikin tombol overlap — teks tombol kini cuma nama pack. Tooltip bawaan ternyata tidak muncul, jadi diganti label info khusus di atas barisan tombol (`mouse_entered/exited` → tampil rincian biaya, ikut update saat harga naik). Tooltip_text tetap dipasang sebagai cadangan.
+- **Background main menu (user, asset baru):** `menu.gd` tampilkan `assets/ui/main_menu_bg.png` (cover full-screen, fallback warna gelap kalau belum ada; judul teks disembunyikan kalau bg ada karena logo baked-in). File perlu disimpan user + buka editor sekali agar ke-import. Tombol ikut mockup: teks rata-kiri tanpa kotak (`flat`), font 36, hover biru muda, posisi kiri-bawah logo; font italic serif opsional via `assets/ui/menu_font.ttf` (fallback font default kalau belum ada).
+- **Panel kartu transparan (user, "full tanpa putih"):** root Panel pakai `StyleBoxEmpty` agar background putih tidak mengintip di tepi frame; gaya putih lama pindah ke kode sebagai fallback saat PNG belum ada (`_fallback_panel_style`). Lanjutan (user, "stretch dilebarin"): `FrameTexture` di-bleed 6px keluar tiap sisi (rect -6,-6,96,134) agar art nutup penuh; sisa margin (kalau ada) tampil sebagai board gelap, bukan putih. Catatan: kalau putih masih terlihat setelah PNG dipasang, berarti margin putih baked-in di file PNG-nya — solusinya crop file (bisa via System.Drawing, tidak perlu install apa pun).
+- **Insiden file korup (pelajaran):** `intro.gd` sempat parse-error + hang test setelah edit manual — penyebabnya satu karakter non-ASCII yang kesimpan dengan encoding lain (terbaca `�`). Solusi: tulis ulang file bersih + hindari karakter non-ASCII di kode. Aturan baru: jangan pakai karakter non-ASCII di file `.gd`/`.tres` (teks UI Indonesia tetap boleh di string biasa, tapi aman pakai ASCII saja).
 
 ---
 
-# BAGIAN E — OPEN QUESTIONS (dari GDD §18, keputusan ditunda)
+# BAGIAN E — OPEN QUESTIONS (dari GDD S18, keputusan ditunda)
 
 - **1 Day real-time timer vs "End Day" manual murni? → KEPUTUSAN: hybrid (sudah diimplementasi).** Gather real-time (timer per unit, progres bar di kartu ala Stacklands); produksi building, konsumsi food/O2, kematian, traveling, event → resolve di End Day.
 - **Balancing angka pasti (base_value, interval, cost) → KEPUTUSAN: baseline dipertahankan dulu.** Wajib di-tuning setelah playtest pertama; formula scaling A16 sudah menaikkan kesulitan per hari.

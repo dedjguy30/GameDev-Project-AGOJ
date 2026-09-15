@@ -128,6 +128,11 @@ func _run_checks() -> Array[String]:
 		for entry in pack.drop_table:
 			if not card_db.has_card(entry.card_id):
 				errors.append("Pack " + pack.id + " → drop entry tidak ada: " + entry.card_id)
+		for req in pack.resource_cost:
+			if not card_db.has_card(req.get("item_id", "")):
+				errors.append("Pack " + pack.id + " → resource_cost tidak ada: " + req.get("item_id", ""))
+			if int(req.get("qty", 0)) <= 0:
+				errors.append("Pack " + pack.id + " → resource_cost qty harus > 0")
 
 	# 10. Cek Sektor
 	for sector in recipe_db.all_sectors():

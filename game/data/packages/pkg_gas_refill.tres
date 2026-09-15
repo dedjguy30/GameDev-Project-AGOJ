@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1_script")
 id = "pkg_gas_refill"
-display_name = "Pasok Bahan Bakar"
+display_name = "Fuel Resupply"
 category = 7
 rarity = 1
-description = "Kirim 3 Fuel Cell ke Gas Nebula."
+description = "Deliver 3 Fuel Cells to the Gas Nebula."
 stack_max = 0
 sell_value = 0
 destination_sector_id = "sector_gas_nebula"
