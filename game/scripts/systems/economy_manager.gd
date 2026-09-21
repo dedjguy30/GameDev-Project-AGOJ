@@ -117,11 +117,20 @@ func open_pack(pack_id: String) -> void:
 		board.ship_rect.position + Vector2(240, 320), Color(0.7, 0.95, 1))
 
 # A6 — efek tool consumable
+# Nilai efek dibaca dari data (ToolCardData.effect_value) supaya bisa di-tune
+# lewat .tres tanpa ubah kode.
 func apply_tool_effect(tool_id: String, board: Board) -> void:
 	match tool_id:
 		"tool_repair_kit":
 			GameState.hull = clampf(GameState.hull + 20.0, 0.0, GameState.HULL_MAX)
 			board._show_toast("Hull +20", board.ship_rect.position + Vector2(240, 320), Color(0.55, 1, 0.6))
+			GameState.stats_changed.emit()
+		"tool_portable_o2_tank":
+			var data := CardDB.get_card(tool_id) as ToolCardData
+			var restore: float = data.effect_value if data != null else 25.0
+			GameState.oxygen = clampf(GameState.oxygen + restore, 0.0, GameState.O2_MAX)
+			board._show_toast("O2 +%d" % int(restore),
+				board.ship_rect.position + Vector2(240, 320), Color(0.6, 0.9, 1))
 			GameState.stats_changed.emit()
 		_:
 			pass

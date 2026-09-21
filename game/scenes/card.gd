@@ -21,11 +21,6 @@ var unit_state: int = Enums.UnitState.IDLE
 var assigned_building: Card = null    # Unit → Building tempat WORKING
 var equipped_tool_ids: Array[String] = []
 
-# A1.2 — O2 tether
-var is_tethered := false
-var tether_status: int = Enums.TetherStatus.NORMAL
-var tank_days_left := 0
-
 # A7 — building runtime
 var is_built := false                 # sudah dibayar build_cost & terpasang
 var is_off := false                   # auto-shutdown kekurangan power
@@ -117,12 +112,6 @@ func _update_status_visual() -> void:
 			Enums.UnitState.TRAVELING:
 				_status_label.text = "TRAVELING"
 				return
-	if tether_status == Enums.TetherStatus.O2_CUT:
-		_status_label.text = "O2 CUT!"
-		return
-	if is_tethered:
-		_status_label.text = "TETHERED"
-		return
 	if assigned_node != null or assigned_building != null:
 		_status_label.text = "WORKING"
 		return
@@ -247,16 +236,6 @@ func equip_tool(tool_id: String) -> void:
 
 func has_equipped_tool(tool_id: String) -> bool:
 	return equipped_tool_ids.has(tool_id)
-
-# ---------- A1.2: tether ----------
-
-func set_tethered(tethered: bool) -> void:
-	is_tethered = tethered
-	_update_status_visual()
-
-func set_tether_status(status: int) -> void:
-	tether_status = status
-	_update_status_visual()
 
 # ---------- A8: package assembly ----------
 

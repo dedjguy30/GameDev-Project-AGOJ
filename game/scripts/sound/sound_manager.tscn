@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cu0y45px541al"]
+
+[ext_resource type="Script" uid="uid://x5278khjgw2d" path="res://scripts/sound/sound_manager.gd" id="1_l3liq"]
+
+[node name="sound_manager" type="Node" unique_id=2001594703]
+script = ExtResource("1_l3liq")

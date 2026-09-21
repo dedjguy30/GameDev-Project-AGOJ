@@ -1,6 +1,15 @@
 class_name HUD
 extends Control
 
+# Warna sorotan baris resep: ON = bisa dibuat sekarang, OFF = belum bisa.
+const RECIPE_BG_ON := Color(0.11, 0.26, 0.16)
+const RECIPE_BORDER_ON := Color(0.4, 0.92, 0.53)
+const RECIPE_FG_ON := Color(0.8, 1, 0.85)
+const RECIPE_BG_OFF := Color(0.12, 0.13, 0.18)
+const RECIPE_BORDER_OFF := Color(0.26, 0.29, 0.36)
+const RECIPE_FG_OFF := Color(0.6, 0.64, 0.72)
+const RECIPE_STATUS_BAD := Color(1, 0.62, 0.55)
+
 var _board: Board
 var _stats_label: Label
 var _event_popup: Panel
@@ -8,8 +17,12 @@ var _event_card_ref: Card
 var _game_over_panel: Panel
 var _choice_buttons: Array[Button] = []
 var _recipe_panel: Panel
+var _recipe_rows: Array[Dictionary] = []
+var _recipe_summary: Label
+var _recipe_refresh_timer := 0.0
 var _pack_info_label: Label
 var _hovered_pack_id := ""
+
 
 func setup(board: Board) -> void:
 	_board = board
@@ -57,8 +70,8 @@ func _build_buttons() -> void:
 	end_day.position = Vector2(view.x - 156.0, view.y - 60.0)
 	end_day.pressed.connect(DayCycle.end_day)
 	add_child(end_day)
-
-	# Tombol pack dijejer horizontal di kiri tombol End Day (kanan-bawah).
+ asdasdnasdasd
+	# Tombol pack dijejer horizontal di kiri tombol End Day (kanan-bawah) ok.
 	# Teks tombol cuma nama pack; rincian biaya tampil saat hover (tooltip).
 	var x := view.x - 156.0 - 10.0 - 300.0
 	for pack_id in _shop_pack_ids():
@@ -117,10 +130,26 @@ func _hide_pack_info() -> void:
 		_pack_info_label.text = ""
 
 # ---------- Buku resep combo (tombol "Resep" kiri-bawah) ----------
+# Tiap resep tampil sebagai satu baris yang di-highlight hijau kalau bisa
+# langsung dibuat dari kartu yang ada di board sekarang (lihat
+# _refresh_recipe_highlights). Baris yang belum bisa diberi alasannya.
+
+func _process(delta: float) -> void:
+	# Refresh sorotan berkala selagi buku resep terbuka, biar langsung ikut
+	# berubah saat kartu di board bertambah/berkurang/habis.
+	if _recipe_panel == null or not _recipe_panel.visible:
+		return
+	_recipe_refresh_timer -= delta
+	if _recipe_refresh_timer <= 0.0:
+		_recipe_refresh_timer = 0.25
+		_refresh_recipe_highlights()
 
 func _toggle_recipe_book() -> void:
-	if _recipe_panel != null:
-		_recipe_panel.visible = not _recipe_panel.visible
+	if _recipe_panel == null:
+		return
+	_recipe_panel.visible = not _recipe_panel.visible
+	if _recipe_panel.visible:
+		_refresh_recipe_highlights()
 
 func _build_recipe_book() -> void:
 	var view := _board.get_viewport_rect().size
@@ -141,60 +170,122 @@ func _build_recipe_book() -> void:
 	close_button.pressed.connect(_toggle_recipe_book)
 	_recipe_panel.add_child(close_button)
 
+	var legend := UIFactory.label("Baris hijau = bisa dibuat sekarang dari kartu di board",
+		13, Color(0.62, 0.78, 0.68), HORIZONTAL_ALIGNMENT_LEFT)
+	legend.position = Vector2(16, 36)
+	legend.size = Vector2(_recipe_panel.size.x - 32.0, 20)
+	_recipe_panel.add_child(legend)
+
+	_recipe_summary = UIFactory.label("", 13, Color(0.6, 1, 0.7), HORIZONTAL_ALIGNMENT_LEFT)
+	_recipe_summary.position = Vector2(16, 54)
+	_recipe_summary.size = Vector2(_recipe_panel.size.x - 32.0, 20)
+	_recipe_panel.add_child(_recipe_summary)
+
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(8, 52)
-	scroll.size = Vector2(_recipe_panel.size.x - 16.0, _recipe_panel.size.y - 60.0)
+	scroll.position = Vector2(8, 78)
+	scroll.size = Vector2(_recipe_panel.size.x - 16.0, _recipe_panel.size.y - 86.0)
 	_recipe_panel.add_child(scroll)
 
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list.add_theme_constant_override("separation", 10)
+	list.add_theme_constant_override("separation", 8)
 	scroll.add_child(list)
 
-	for line in _recipe_lines():
-		var entry := UIFactory.label(line, 15, Color(0.9, 0.95, 1), HORIZONTAL_ALIGNMENT_LEFT)
-		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		list.add_child(entry)
+	var recipes: Array = RecipeDB.all_recipes()
+	recipes.sort_custom(func(a, b): return a.id < b.id)
+	for recipe in recipes:
+		list.add_child(_build_recipe_row(recipe))
+
+	_refresh_recipe_highlights()
+
+func _build_recipe_row(recipe: CraftRecipe) -> Control:
+	var row := PanelContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = RECIPE_BG_OFF
+	style.border_color = RECIPE_BORDER_OFF
+	style.border_width_left = 5
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	row.add_theme_stylebox_override("panel", style)
+
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 4)
+	row.add_child(box)
+
+	var desc := UIFactory.label(_recipe_line(recipe), 15, RECIPE_FG_OFF, HORIZONTAL_ALIGNMENT_LEFT)
+	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(desc)
+
+	var status := UIFactory.label("", 13, RECIPE_FG_OFF, HORIZONTAL_ALIGNMENT_LEFT)
+	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(status)
+
+	_recipe_rows.append({"recipe": recipe, "style": style, "desc": desc, "status": status})
+	return row
+
+# Update warna + status tiap baris resep sesuai kondisi board saat ini.
+func _refresh_recipe_highlights() -> void:
+	if _board == null:
+		return
+	var makeable := 0
+	for row in _recipe_rows:
+		var recipe: CraftRecipe = row["recipe"]
+		var style: StyleBoxFlat = row["style"]
+		var desc: Label = row["desc"]
+		var status: Label = row["status"]
+		var can := RecipeResolver.can_make_now(recipe, _board)
+		style.bg_color = RECIPE_BG_ON if can else RECIPE_BG_OFF
+		style.border_color = RECIPE_BORDER_ON if can else RECIPE_BORDER_OFF
+		desc.add_theme_color_override("font_color", RECIPE_FG_ON if can else RECIPE_FG_OFF)
+		if can:
+			makeable += 1
+			status.text = "✔  BISA DIBUAT SEKARANG"
+			status.add_theme_color_override("font_color", RECIPE_BORDER_ON)
+		else:
+			status.text = "✖  " + RecipeResolver.unmet_reason(recipe, _board)
+			status.add_theme_color_override("font_color", RECIPE_STATUS_BAD)
+	if _recipe_summary != null:
+		_recipe_summary.text = "%d / %d resep bisa dibuat sekarang" % [makeable, _recipe_rows.size()]
 
 func _card_short(card_id: String) -> String:
 	var data: CardData = CardDB.get_card(card_id)
 	return data.display_name if data != null else card_id
 
-func _recipe_lines() -> Array[String]:
-	var lines: Array[String] = []
-	var recipes: Array = RecipeDB.all_recipes()
-	recipes.sort_custom(func(a, b): return a.id < b.id)
-	for recipe in recipes:
-		var ins: Array[String] = []
-		for req in recipe.inputs:
-			ins.append("%s x%d" % [_card_short(String(req.get("item_id", "?"))), int(req.get("qty", 1))])
-		var line := " + ".join(ins) + "  =  " + _card_short(recipe.output_id)
-		if int(recipe.output_qty) > 1:
-			line += " x%d" % int(recipe.output_qty)
-		var gates: Array[String] = []
-		if String(recipe.required_building_id) != "":
-			gates.append("Gedung: " + _card_short(String(recipe.required_building_id)))
-		if not recipe.required_any_structure_ids.is_empty():
-			var names: Array[String] = []
-			for id in recipe.required_any_structure_ids:
-				names.append(_card_short(String(id)))
-			gates.append("Perlu: " + " / ".join(names))
-		if not recipe.required_any_worker_ids.is_empty():
-			var names: Array[String] = []
-			for id in recipe.required_any_worker_ids:
-				names.append(_card_short(String(id)))
-			gates.append("Pekerja: " + " / ".join(names))
-		if not recipe.structure_target_ids.is_empty():
-			var names: Array[String] = []
-			for id in recipe.structure_target_ids:
-				names.append(_card_short(String(id)))
-			gates.append("Ke: " + " / ".join(names))
-		if int(recipe.duration_days) > 0:
-			gates.append("Produksi %d hari" % int(recipe.duration_days))
-		if not gates.is_empty():
-			line += "\n    " + ", ".join(gates)
-		lines.append(line)
-	return lines
+func _recipe_line(recipe: CraftRecipe) -> String:
+	var ins: Array[String] = []
+	for req in recipe.inputs:
+		ins.append("%s x%d" % [_card_short(String(req.get("item_id", "?"))), int(req.get("qty", 1))])
+	var line := " + ".join(ins) + "  =  " + _card_short(recipe.output_id)
+	if int(recipe.output_qty) > 1:
+		line += " x%d" % int(recipe.output_qty)
+	var gates: Array[String] = []
+	if String(recipe.required_building_id) != "":
+		gates.append("Gedung: " + _card_short(String(recipe.required_building_id)))
+	if not recipe.required_any_structure_ids.is_empty():
+		var names: Array[String] = []
+		for id in recipe.required_any_structure_ids:
+			names.append(_card_short(String(id)))
+		gates.append("Perlu: " + " / ".join(names))
+	if not recipe.required_any_worker_ids.is_empty():
+		var names: Array[String] = []
+		for id in recipe.required_any_worker_ids:
+			names.append(_card_short(String(id)))
+		gates.append("Pekerja: " + " / ".join(names))
+	if not recipe.structure_target_ids.is_empty():
+		var names: Array[String] = []
+		for id in recipe.structure_target_ids:
+			names.append(_card_short(String(id)))
+		gates.append("Ke: " + " / ".join(names))
+	if int(recipe.duration_days) > 0:
+		gates.append("Produksi %d hari" % int(recipe.duration_days))
+	if not gates.is_empty():
+		line += "\n    " + ", ".join(gates)
+	return line
 
 # ---------- Event choice popup (A9 PLAYER_CHOICE) ----------
 

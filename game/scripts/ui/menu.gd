@@ -31,7 +31,7 @@ func _ready() -> void:
 		title.position = Vector2(view.x * 0.5 - 350.0, view.y * 0.5 - 190.0)
 		title.size = Vector2(700, 90)
 		add_child(title)
-
+	
 
 	var start_button := _make_menu_button("Start")
 	start_button.position = Vector2(view.x * 0.06, view.y * 0.50)

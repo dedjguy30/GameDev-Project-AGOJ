@@ -53,28 +53,25 @@ func end_day() -> void:
 		GameState.days_without_food = 0
 	_resolve_power(board)
 
-	# 5. Tether & O2_CUT (A1.2) — sebelum roll kematian
-	_resolve_tether(board)
-
-	# 6. Kematian / critical state (A14)
+	# 5. Kematian / critical state (A14)
 	_resolve_deaths(board)
 
-	# 7. Package yang TRAVELING (A8)
+	# 6. Package yang TRAVELING (A8)
 	Packages.resolve_travel()
 
-	# 8. Roll event (A9)
+	# 7. Roll event (A9)
 	Events.maybe_spawn_event()
 
-	# 9. Efek sementara berkurang
+	# 8. Efek sementara berkurang
 	for key in GameState.active_effects.keys():
 		GameState.active_effects[key] = int(GameState.active_effects[key]) - 1
 		if int(GameState.active_effects[key]) <= 0:
 			GameState.active_effects.erase(key)
 
-	# 10. Cek Game Over
+	# 9. Cek Game Over
 	_check_game_over()
 
-	# 11. Skor (A16)
+	# 10. Skor (A16)
 	GameState.update_score()
 	GameState.stats_changed.emit()
 
@@ -173,26 +170,7 @@ func _resolve_power(board: Board) -> void:
 			net -= draw
 	GameState.power = clampf(net, 0.0, GameState.power_cap)
 
-# ---------- 5. Tether (A1.2) ----------
-
-func _resolve_tether(board: Board) -> void:
-	var station := board._find_tether_station()
-	var station_powered: bool = station != null and not station.is_off
-	for unit in board.get_units():
-		var in_open: bool = board.open_rect.has_point(unit.global_position + unit.size * 0.5)
-		if not in_open:
-			unit.set_tether_status(Enums.TetherStatus.NORMAL)
-			continue
-		if unit.tank_days_left > 0:
-			unit.tank_days_left -= 1
-			unit.set_tether_status(Enums.TetherStatus.NORMAL if unit.tank_days_left > 0 else Enums.TetherStatus.O2_CUT)
-			unit.refresh()
-		elif unit.is_tethered:
-			unit.set_tether_status(Enums.TetherStatus.NORMAL if station_powered else Enums.TetherStatus.O2_CUT)
-		else:
-			unit.set_tether_status(Enums.TetherStatus.O2_CUT)
-
-# ---------- 6. Kematian (A14) ----------
+# ---------- 5. Kematian (A14) ----------
 
 func _resolve_deaths(board: Board) -> void:
 	var med_bay_active := false
@@ -203,11 +181,9 @@ func _resolve_deaths(board: Board) -> void:
 	var prevented := false
 	for unit in board.get_units().duplicate():
 		var roll := randf()
-		var should_die := false
-		if unit.tether_status == Enums.TetherStatus.O2_CUT:
-			should_die = roll < 0.25
-		elif GameState.oxygen <= 0.0:
-			should_die = roll < 0.25
+		# Unit di Zona Angkasa memakai O2 stok kapal; kalau stok habis, ada
+		# risiko 25%/hari seorang unit meninggal (A14).
+		var should_die := roll < 0.25 and GameState.oxygen <= 0.0
 		if should_die:
 			if med_bay_active and not prevented:
 				prevented = true

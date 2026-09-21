@@ -80,43 +80,12 @@ func validate_drop(card: Card) -> bool:
 		Enums.CardCategory.PACKAGE:
 			return zone == Enums.BoardZone.SHIP_INTERIOR
 		Enums.CardCategory.UNIT:
-			if zone == Enums.BoardZone.SHIP_INTERIOR:
-				# kembali ke kapal → lepas tether
-				if card.is_tethered or card.tether_status != Enums.TetherStatus.NORMAL:
-					card.set_tethered(false)
-					card.set_tether_status(Enums.TetherStatus.NORMAL)
-				return true
-			# drop ke Zona Angkasa → butuh slot tether atau portable tank (A1.2)
-			if card.tank_days_left > 0:
-				return true
-			var station := _find_tether_station()
-			if station == null:
-				_show_toast("Butuh O2 Umbilical Station atau Portable O2 Tank",
-					card.global_position, Color(1, 0.6, 0.55))
-				return false
-			var tethered_count := 0
-			for card_node in get_tree().get_nodes_in_group(&"cards"):
-				var other := card_node as Card
-				if other != null and other.is_unit() and other.is_tethered:
-					tethered_count += 1
-			var station_data := station.card_data as BuildingCardData
-			var max_connections: int = station_data.max_connections if station_data != null else 2
-			if tethered_count >= max_connections:
-				_show_toast("Slot tether penuh (%d)" % max_connections,
-					card.global_position, Color(1, 0.6, 0.55))
-				return false
+			# Unit boleh kerja di mana saja (kapal maupun angkasa). Di Zona
+			# Angkasa tidak butuh tether/tank lagi — cukup memakai O2 dari stok
+			# kapal (5 O2/hari per unit, lihat DayCycle).
 			return true
 		_:
 			return true
-
-func _find_tether_station() -> Card:
-	for card_node in get_tree().get_nodes_in_group(&"cards"):
-		var card := card_node as Card
-		if card == null or card.is_queued_for_deletion() or card.card_data == null:
-			continue
-		if card.is_building() and card.is_built and card.get_card_id() == "building_o2_umbilical_station":
-			return card
-	return null
 
 # ---------- Routing drop (A5/A6/A7/A8/A10/A13) ----------
 
@@ -172,9 +141,6 @@ func _on_card_dropped(card: Card, position: Vector2) -> void:
 	if card.is_unit():
 		card.unassign()
 		card.unassign_from_building()
-		# A1.2: unit di Zona Angkasa harus ter-tether (sudah divalidasi validate_drop)
-		if get_zone(card.global_position + card.size * 0.5) == Enums.BoardZone.OPEN_SPACE:
-			card.set_tethered(card.tank_days_left <= 0)
 
 	# A13: combine manual
 	var recipe := RecipeResolver.find_recipe(card, target, self)
@@ -204,8 +170,6 @@ func _try_equip_tool(tool_card: Card, unit: Card) -> void:
 		_show_toast("Sudah ter-equip", tool_card.global_position, Color(1, 0.8, 0.5))
 		return
 	unit.equip_tool(tool_card.get_card_id())
-	if tool_data.tank_duration_days > 0:
-		unit.tank_days_left = tool_data.tank_duration_days
 	tool_card.queue_free()
 	var tool_name: String = tool_data.display_name
 	_show_toast("Equip: " + tool_name, unit.global_position, Color(0.55, 1, 0.6))
@@ -249,9 +213,6 @@ func _try_assign(unit_card: Card, node_card: Card) -> void:
 	if unit_card.assigned_building != null:
 		unit_card.unassign_from_building()
 	unit_card.assign_to_node(node_card)
-	if node_card.is_tethered == false and unit_card.is_tethered == false and unit_card.tank_days_left <= 0 \
-			and get_zone(node_card.global_position + node_card.size * 0.5) == Enums.BoardZone.OPEN_SPACE:
-		unit_card.set_tethered(true)
 	_show_toast("Gathering: " + node_card.card_data.display_name,
 		unit_card.global_position, Color(0.55, 1, 0.6))
 

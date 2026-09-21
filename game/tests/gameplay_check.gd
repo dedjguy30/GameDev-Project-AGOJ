@@ -131,19 +131,32 @@ func _run_gameplay_tests() -> void:
 	if a2.unit_state != Enums.UnitState.IDLE:
 		_fail("E: unit harus kembali IDLE setelah terkirim")
 
-	# F. A1.2: tether — 2 unit boleh, ke-3 ditolak
-	var engineer := _find("unit_engineer")
-	_board._on_card_dropped(a2, Vector2(1800, 700))
-	_board._on_card_dropped(engineer, Vector2(1800, 900))
+	# F. A1.2 (revisi): unit boleh kerja di Zona Angkasa TANPA tether/tank —
+	#    cukup memakai O2 dari stok kapal. Portable O2 Tank kini consumable
+	#    yang menambah 25 O2 saat dipakai pada unit.
+	var spacer := _board.spawn_card_at("unit_astronaut", Vector2(1750, 760))
+	var tank_owner := _board.spawn_card_at("unit_astronaut", Vector2(1750, 300))
 	await get_tree().process_frame
-	if not a2.is_tethered:
-		_fail("F: a2 harus tethered di angkasa")
-	if not engineer.is_tethered:
-		_fail("F: engineer harus tethered di angkasa")
-	a1.global_position = Vector2(1750, 500)
-	if _board.validate_drop(a1):
-		_fail("F: slot tether penuh (2) harus menolak unit ke-3")
-	a1.global_position = hydro.global_position + Vector2(8, 30)
+	if _board.get_zone(Vector2(1780, 790)) != Enums.BoardZone.OPEN_SPACE:
+		_fail("F: koordinat tes harus di Zona Angkasa")
+	if not _board.validate_drop(spacer):
+		_fail("F: unit harus boleh masuk Zona Angkasa tanpa tether/tank")
+	_board._on_card_dropped(spacer, spacer.global_position + spacer.size * 0.5)
+	await get_tree().process_frame
+	if spacer.is_queued_for_deletion():
+		_fail("F: unit tidak boleh hilang di Zona Angkasa tanpa tether/tank")
+	GameState.oxygen = 40.0
+	var tank := _board.spawn_card_at("tool_portable_o2_tank", Vector2(1750, 500))
+	await get_tree().process_frame
+	if tank == null:
+		_fail("F: portable O2 tank tidak bisa di-spawn")
+	else:
+		_drop(tank, tank_owner)
+		await get_tree().process_frame
+		if GameState.oxygen != 65.0:
+			_fail("F: portable O2 tank harus +25 O2 (40 -> 65), sekarang %.0f" % GameState.oxygen)
+		if _find("tool_portable_o2_tank") != null:
+			_fail("F: portable O2 tank harus terkonsumsi setelah dipakai")
 
 	# G. A9: PLAYER_CHOICE — Trade → Alien Pack gratis terbuka
 	var cards_before := _count_all()
